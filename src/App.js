@@ -11,18 +11,28 @@ function App() {
     console.log('loading')
     const pokemonPromises = []
 
+    setLoading(true)
     for (let i = 1; i <= 150; i++) {
       pokemonPromises.push(
         fetch(getPokemonUrl(i)).then((response) => response.json())
       )
     }
 
-    console.log(pokemonPromises)
-    setLoading(true)
-    const pokemons = await Promise.all(pokemonPromises)
-    setPokemons(pokemons)
-    setLoading(false)
+    try {
+      console.time('promise time')
+      const pokemons = await Promise.all(pokemonPromises)
+      console.timeEnd('promise time')
+      setPokemons(pokemons)
 
+      console.time('promise time')
+      const pokemonsRace = await Promise.race(pokemonPromises)
+      console.timeEnd('promise time')
+
+      setLoading(false)
+    } catch (err) {
+      alert(err)
+      setLoading(false)
+    }
     // async function getPokemons(){
     //   const promises = await pokemonPromises.map(async((url,idx) =>
     //     console.log(`Received Todo ${idx+1}:`, await fetch(url))
@@ -50,7 +60,13 @@ function App() {
 
   return (
     <div className='App'>
-      {loading && <p>Carregando</p>}
+      {loading && (
+        <p
+          style={{ margin: '0 auto', backgroundColor: 'blue', height: '100vh' }}
+        >
+          Carregando
+        </p>
+      )}
       {pokemons.length > 0 &&
         pokemons.map((pokemon) => {
           const ref = React.createRef()
